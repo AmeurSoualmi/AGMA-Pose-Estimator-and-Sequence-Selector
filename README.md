@@ -10,7 +10,7 @@ Clone this repository and install the required packages listed in requirements.t
 A video tutorial of AGMA-PESS is avaliable online [here]()
 
 ### Instalation file:
-Alternatively, you can download directly the installation .exe file for Windows operating systems, from [here](https://drive.google.com/file/d/1QungTu7_TwrRZ1hGrLD1QVRcI4ZF3g0O/view?usp=sharing). 
+Alternatively, you can download directly the installation .exe file for Windows operating systems, from [here](https://drive.google.com/file/d/19K-_r4U_X33Rd6XA4H7hHoP_5r_a4PgV/view?usp=sharing). 
  
 
 Currently there is no updated version of AGMA-PESS for Mac or Linux.
