@@ -1,19 +1,19 @@
 # AGMA Pose Estimator and Sequence Selector (AGMA-PESS)
-Deep learning based pose estimator and video sequence selector for infants GMA
+Deep learning-based pose estimator and video sequence selector for infants GMA
 
-AGMA-PESS is a python (PyQt5) based application developed to facilitate the selection of general movements sequences from videos in addition to infants' pose estimation . 
+AGMA-PESS is a python (PyQt5) based application developed to facilitate the selection of general movement sequences from videos in addition to infants' pose estimation. 
 
 ## How to run AGMA-PESS
 Clone this repository and install the required packages listed in requirements.txt. Then, add the deep-learning model that can be found [here](https://drive.google.com/file/d/1xGAS2eWaF1dyXPgikYAqVs8DZwf2xiIJ/view?usp=sharing) inside "models" folder. Finally, run AGMA-PESS.py. 
 
 ### Tutorial
-A video tutorial of AGMA-PESS is avaliable online [here]()
+A video tutorial of AGMA-PESS is available online [here]()
 
-### Instalation file:
-Alternatively, you can download directly the installation .exe file for Windows operating systems, from [here](https://drive.google.com/file/d/19K-_r4U_X33Rd6XA4H7hHoP_5r_a4PgV/view?usp=sharing). 
+### Installation file
+Alternatively, you can download the installation .exe file for Windows operating systems directly from [here](https://drive.google.com/file/d/19K-_r4U_X33Rd6XA4H7hHoP_5r_a4PgV/view?usp=sharing). 
  
 
-Currently there is no updated version of AGMA-PESS for Mac or Linux.
+Currently, there is no updated version of AGMA-PESS for Mac or Linux.
 ## Citation
 If you use this code, please cite:
 - Soualmi A, Alata O, Patural H, Ducottet C, Giraud A."AGMA-PESS: a deep-learning based software to automatically select video sequences for General Movements assessment"..........
@@ -22,7 +22,7 @@ If you use this code, please cite:
 
 
 
-Many thanks for the authors of the following works:
+Many thanks to the authors of the following works:
 ```
 @inproceedings{sun2019deep,
   title={Deep High-Resolution Representation Learning for Human Pose Estimation},
