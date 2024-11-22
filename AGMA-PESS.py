@@ -246,7 +246,7 @@ class Sequence_selector(QMainWindow):
         self.stop_flag = False
         self.ui.pushButton_Dest_folder.setEnabled(False)
 
-    def _dest(self):
+    def dest(self):
         """Open the destination folder."""
         os.startfile(self.video_path[:-4] + "_Sequences")
 
