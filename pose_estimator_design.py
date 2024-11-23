@@ -11,9 +11,9 @@ class Pose_design_window(object):
         height_scale = int(self.screen_height / 1030)
         MainWindow.setObjectName("MainWindow")
         MainWindow.setWindowIcon(QtGui.QIcon('running_files/images/vetruv_ico.ico'))
-        MainWindow.resize(1095*width_scale, 640*height_scale)
-        MainWindow.setMinimumSize(QtCore.QSize(1095*width_scale, 640*height_scale))
-        MainWindow.setMaximumSize(QtCore.QSize(1095*width_scale, 640*height_scale))
+        MainWindow.resize(1095 * width_scale, 640 * height_scale)
+        MainWindow.setMinimumSize(QtCore.QSize(1095 * width_scale, 640 * height_scale))
+        MainWindow.setMaximumSize(QtCore.QSize(1095 * width_scale, 640 * height_scale))
 
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -67,7 +67,7 @@ class Pose_design_window(object):
 
         self.label_video_number = QtWidgets.QLabel(self.groupBox_settings)
         self.label_video_number.setGeometry(
-            QtCore.QRect(20 * width_scale, 80 * height_scale, 210 * width_scale, 20 * height_scale))
+            QtCore.QRect(20 * width_scale, 75 * height_scale, 210 * width_scale, 20 * height_scale))
         font.setPixelSize(14)
         self.label_video_number.setFont(font)
         self.label_video_number.setText("")
@@ -75,7 +75,7 @@ class Pose_design_window(object):
 
         self.label_number_fps = QtWidgets.QLabel(self.groupBox_settings)
         self.label_number_fps.setGeometry(
-            QtCore.QRect(20 * width_scale, 115 * height_scale, 210 * width_scale, 20 * height_scale))
+            QtCore.QRect(20 * width_scale, 100 * height_scale, 210 * width_scale, 20 * height_scale))
         font.setPixelSize(16)
         # font.setBold(False)
         # font.setWeight(50)
@@ -84,32 +84,37 @@ class Pose_design_window(object):
 
         self.pushButton_help = QtWidgets.QPushButton(self.groupBox_settings)
         self.pushButton_help.setGeometry(
-            QtCore.QRect( 210* width_scale, 115 * height_scale, 20 * width_scale, 20 * height_scale))
+            QtCore.QRect(210 * width_scale, 100 * height_scale, 20 * width_scale, 20 * height_scale))
         self.pushButton_help.setObjectName("help")
         self.pushButton_help.setStyleSheet("border: none;")
         icon = QtGui.QIcon()
         icon.addFile("running_files/images/help.png", QtCore.QSize(), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton_help.setIcon(icon)
 
-
         self.lineEdit_number_fps = QtWidgets.QLineEdit(self.groupBox_settings)
         self.lineEdit_number_fps.setGeometry(
-            QtCore.QRect(20 * width_scale, 140 * height_scale, 210 * width_scale, 25 * height_scale))
+            QtCore.QRect(20 * width_scale, 125 * height_scale, 210 * width_scale, 25 * height_scale))
         self.lineEdit_number_fps.setObjectName("lineEdit_number_fps")
-
-
 
         self.label_number_fps_error = QtWidgets.QLabel(self.groupBox_settings)
         self.label_number_fps_error.setGeometry(
-            QtCore.QRect(20 * width_scale, 165 * height_scale, 210 * width_scale, 20 * height_scale))
+            QtCore.QRect(20 * width_scale, 180 * height_scale, 210 * width_scale, 20 * height_scale))
         self.label_number_fps_error.setFont(font)
         self.label_number_fps_error.setStyleSheet('color: red')
         self.label_number_fps_error.setText("")
         self.label_number_fps_error.setObjectName("label_number_fps_error")
 
+        self.radioButton_save = QtWidgets.QRadioButton(self.groupBox_settings)
+        self.radioButton_save.setGeometry(
+            QtCore.QRect(20 * width_scale, 150 * height_scale, 210 * width_scale, 40 * height_scale))
+        font.setPixelSize(16)
+        self.radioButton_save.setFont(font)
+        self.radioButton_save.setText("Save processed images")
+        self.radioButton_save.setObjectName("radioButton_save")
+
         self.pushButton_Start = QtWidgets.QPushButton(self.groupBox_settings)
         self.pushButton_Start.setGeometry(
-            QtCore.QRect(20 * width_scale, 200 * height_scale, 210 * width_scale, 40 * height_scale))
+            QtCore.QRect(20 * width_scale, 210 * height_scale, 210 * width_scale, 40 * height_scale))
         font.setPixelSize(20)
         self.pushButton_Start.setFont(font)
         self.pushButton_Start.setObjectName("pushButton_Start")
@@ -117,23 +122,22 @@ class Pose_design_window(object):
         self.pushButton_Stop = QtWidgets.QPushButton(self.groupBox_settings)
         self.pushButton_Stop.setFont(font)
         self.pushButton_Stop.setGeometry(
-            QtCore.QRect(20 * width_scale, 250 * height_scale, 210 * width_scale, 40 * height_scale))
+            QtCore.QRect(20 * width_scale, 260 * height_scale, 210 * width_scale, 40 * height_scale))
         self.pushButton_Stop.setObjectName("pushButton_Stop")
 
         self.pushButton_Dest_folder = QtWidgets.QPushButton(self.groupBox_settings)
         self.pushButton_Dest_folder.setGeometry(
-            QtCore.QRect(20 * width_scale, 300 * height_scale, 210 * width_scale, 40 * height_scale))
+            QtCore.QRect(20 * width_scale, 310 * height_scale, 210 * width_scale, 40 * height_scale))
         self.pushButton_Dest_folder.setFont(font)
         self.pushButton_Dest_folder.setObjectName("pushButton_Dest_folder")
 
         self.label_logo = QtWidgets.QLabel(self.groupBox_settings)
         self.label_logo.setGeometry(
-            QtCore.QRect(40 * width_scale, 350 * height_scale, 170 * width_scale, 170 * height_scale))
+            QtCore.QRect(40 * width_scale, 360 * height_scale, 170 * width_scale, 170 * height_scale))
         self.label_logo.setText("")
         self.label_logo.setPixmap(QtGui.QPixmap("running_files/images/vetruv_png.png"))
         self.label_logo.setScaledContents(True)
         self.label_logo.setObjectName("label_logo")
-
 
         self.label_univ = QtWidgets.QLabel(self.centralwidget)
         self.label_univ.setGeometry(
@@ -169,20 +173,22 @@ class Pose_design_window(object):
 
         self.pushButton_french = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_french.setObjectName("pushButton_french")
-        self.pushButton_french.setGeometry(QtCore.QRect(1050*width_scale, 5*height_scale, 30*width_scale, 20*height_scale))
+        self.pushButton_french.setGeometry(
+            QtCore.QRect(1050 * width_scale, 5 * height_scale, 30 * width_scale, 20 * height_scale))
         icon = QtGui.QIcon()
         icon.addFile("running_files/images/french.png", QtCore.QSize(), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton_french.setIcon(icon)
-        self.pushButton_french.setIconSize(QtCore.QSize(40*height_scale, 30*width_scale))
+        self.pushButton_french.setIconSize(QtCore.QSize(40 * height_scale, 30 * width_scale))
 
         self.pushButton_english = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_english.setObjectName("pushButton_english")
-        self.pushButton_english.setGeometry(QtCore.QRect(1015*width_scale, 5*height_scale, 30*width_scale, 20*height_scale))
+        self.pushButton_english.setGeometry(
+            QtCore.QRect(1015 * width_scale, 5 * height_scale, 30 * width_scale, 20 * height_scale))
         icon1 = QtGui.QIcon()
         icon1.addFile("running_files/images/english.png", QtCore.QSize(), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton_english.setIcon(icon1)
-        self.pushButton_english.setIconSize(QtCore.QSize(40*height_scale, 50*width_scale
-                                                  ))
+        self.pushButton_english.setIconSize(QtCore.QSize(40 * height_scale, 50 * width_scale
+                                                         ))
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)

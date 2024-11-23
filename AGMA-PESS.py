@@ -109,7 +109,7 @@ class First_window(QMainWindow):
         """ Switch the application language to French"""
         global language
         language = "fr"
-        translator.load("running_files/translations/translati_fr.qm")
+        translator.load("running_files/translations/translati.qm")
         app.installTranslator(translator)
         self.ui.pushButton_english.setEnabled(True)
         self.ui.pushButton_french.setEnabled(False)
@@ -201,7 +201,7 @@ class Sequence_selector(QMainWindow):
     def lang_fr(self):
         global language
         language = "fr"
-        translator.load("running_files/translations/translati_fr.qm")
+        translator.load("running_files/translations/translati.qm")
         app.installTranslator(translator)
         self.ui.pushButton_english.setEnabled(True)
         self.ui.pushButton_french.setEnabled(False)
@@ -440,6 +440,7 @@ class Pose_estimator(QMainWindow):
         self.ui.pushButton_Dest_folder.setText(self.tr("Destination Folder"))
         self.ui.pushButton_Start.setText(self.tr("Start"))
         self.ui.pushButton_Stop.setText(self.tr("Stop"))
+        self.ui.radioButton_save.setText(self.tr("Save processed images"))
 
     def connect_signals(self):
         """Establish connections between buttons and their respective functions"""
@@ -476,12 +477,13 @@ class Pose_estimator(QMainWindow):
             self.tr("Destination Folder"))
         self.ui.pushButton_Start.setText(self.tr("Start"))
         self.ui.pushButton_Stop.setText(self.tr("Stop"))
+        self.ui.radioButton_save.setText(self.tr("Save processed images"))
 
     def lang_fr(self):
         """Switch the application's language to French."""
         global language
         language = "fr"
-        translator.load("running_files/translations/translati_fr.qm")
+        translator.load("running_files/translations/translati.qm")
         app.installTranslator(translator)
         self.ui.pushButton_english.setEnabled(True)
         self.ui.pushButton_french.setEnabled(False)
@@ -551,7 +553,8 @@ class Pose_estimator(QMainWindow):
 
         for idx, video_path in enumerate(self.videos_paths):
             self.ui.label_video_number.setText(self.tr('Video ') + str(idx + 1) + '/' + str(len(self.videos_paths)))
-            self.process_video(video_path)
+            self.video_path = video_path
+            self.process_video(self.video_path)
 
         self.ui.pushButton_Dest_folder.setEnabled(True)
 
@@ -562,6 +565,7 @@ class Pose_estimator(QMainWindow):
         if not self.set_fps():
             return
         self.detections = pd.DataFrame(columns=dataframe_columns)
+        self.ui.radioButton_save.blockSignals(True)
         self.ui.pushButton_Load.blockSignals(True)
         self.ui.pushButton_Start.blockSignals(True)
         self.video_resolution = (int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT)))
@@ -573,6 +577,7 @@ class Pose_estimator(QMainWindow):
 
         self.ui.progressBar.setValue(self.video_length)
         self.save_detections(video_path)
+        self.ui.radioButton_save.blockSignals(False)
         self.ui.pushButton_Load.blockSignals(False)
         self.ui.pushButton_Start.blockSignals(False)
 
@@ -597,18 +602,32 @@ class Pose_estimator(QMainWindow):
                 return
             ret, frame = self.video.read()
             if ret:
+                if self.ui.radioButton_save.isChecked(): # Check if processed images saving is activated
+                    if i == 0:
+                        self.save_directory = os.path.join(self.path(), "Pose_estimations", os.path.basename(self.video_path)[:-4] + "_images")
+                        if not os.path.exists(self.save_directory):
+                            os.makedirs(self.save_directory)
+                    cv2.imwrite(os.path.join(self.save_directory,str(i+1)+ ".jpg"), frame)
                 self.ui.progressBar.setValue(i + 1)
                 self.process_frame(frame)
 
     def analyze_selected_frames(self):
         """Process selected frames at specified intervals based on the desired FPS."""
         frame_interval = self.video_fps // self.number_fps
+        counter = 0
         for frame_nbr in range(0, self.video_length, frame_interval):
             if self.stop_flag:
                 return
             self.video.set(cv2.CAP_PROP_POS_FRAMES, frame_nbr)
             ret, frame = self.video.read()
             if ret:
+                if self.ui.radioButton_save.isChecked(): # Check if processed images saving is activated
+                    if frame_nbr == 0:
+                        self.save_directory = self.path() + "/Pose_estimations/" + os.path.basename(self.video_path)[:-4] + "_images"
+                        if not os.path.exists(self.save_directory):
+                            os.makedirs(self.save_directory)
+                    cv2.imwrite(self.save_directory + "/" + str(counter + 1) + ".jpg", frame)
+                    counter+=1
                 self.ui.progressBar.setValue(frame_nbr + 1)
                 self.process_frame(frame)
 
@@ -632,10 +651,7 @@ class Pose_estimator(QMainWindow):
         if not os.path.isdir(self.path() + "/Pose_estimations"):
             os.mkdir(self.path() + "/Pose_estimations")
         video_name = os.path.basename(video_path)[:-4]
-
         output_path = os.path.join(self.path(), "Pose_estimations", f"{video_name}.xlsx")
-        print(video_name)
-        print(output_path)
         self.detections.to_excel(output_path, index=True)
 
 
