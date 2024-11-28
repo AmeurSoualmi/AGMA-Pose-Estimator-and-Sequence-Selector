@@ -26,6 +26,7 @@ from PyQt5.QtCore import QTranslator
 from PyQt5.QtWidgets import QMainWindow,QApplication,QFileDialog
 from PyQt5.QtGui import QImage,QPixmap
 import pandas as pd
+from subprocess import run as RUN
 
 from PyQt5.QtCore import Qt
 
@@ -400,21 +401,24 @@ class Sequence_selector(QMainWindow):
         self.ui.pushButton_Dest_folder.setEnabled(True)
 
     def save_sequence(self, path, cntr, start):
-        """Save a single sequence of the video."""
-        video_writer = cv2.VideoWriter(os.path.join(path, f'sequence_{cntr}.mp4'),
-                                       cv2.VideoWriter_fourcc(*'mp4v'),
-                                       self.video_fps,
-                                       self.video_resolution)
 
-        for frame_num in range(self.duration * self.video_fps):
-            self.video.set(cv2.CAP_PROP_POS_FRAMES, start * self.video_fps + frame_num)
-            ret, frame = self.video.read()
-            if ret:
-                video_writer.write(frame)
+        command = [
+            "ffmpeg",
+            "-i", self.video_path,  # Input video file
+            "-ss", self.seconds_to_ffmpeg_time(start),  # Start time (in seconds)
+            "-t", str(self.duration),  # Duration of the sequence
+            "-c", "copy",  # Copy codec to avoid re-encoding
+            os.path.join(path, f'sequence_{cntr}.mp4')  # Output file path
+        ]
 
-        video_writer.release()
+        RUN(command, check=True)
 
-
+    def seconds_to_ffmpeg_time(self,seconds):
+        """Convert time in seconds to FFmpeg's timestamp format (HH:MM:SS.mmm)"""
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = seconds % 60  # Remaining seconds, including fractions
+        return f"{hours:02}:{minutes:02}:{secs:06.3f}"  # Format as HH:MM:SS.mmm
 
 
 class Pose_estimator(QMainWindow):
@@ -607,14 +611,14 @@ class Pose_estimator(QMainWindow):
                         self.save_directory = os.path.join(self.path(), "Pose_estimations", os.path.basename(self.video_path)[:-4] + "_images")
                         if not os.path.exists(self.save_directory):
                             os.makedirs(self.save_directory)
-                    cv2.imwrite(os.path.join(self.save_directory,str(i+1)+ ".jpg"), frame)
+
                 self.ui.progressBar.setValue(i + 1)
-                self.process_frame(frame)
+                self.process_frame(frame,i)
 
     def analyze_selected_frames(self):
         """Process selected frames at specified intervals based on the desired FPS."""
         frame_interval = self.video_fps // self.number_fps
-        counter = 0
+        frame_counter = 0
         for frame_nbr in range(0, self.video_length, frame_interval):
             if self.stop_flag:
                 return
@@ -626,12 +630,12 @@ class Pose_estimator(QMainWindow):
                         self.save_directory = self.path() + "/Pose_estimations/" + os.path.basename(self.video_path)[:-4] + "_images"
                         if not os.path.exists(self.save_directory):
                             os.makedirs(self.save_directory)
-                    cv2.imwrite(self.save_directory + "/" + str(counter + 1) + ".jpg", frame)
-                    counter+=1
-                self.ui.progressBar.setValue(frame_nbr + 1)
-                self.process_frame(frame)
 
-    def process_frame(self, frame):
+                self.ui.progressBar.setValue(frame_nbr + 1)
+                self.process_frame(frame,frame_counter)
+                frame_counter += 1
+
+    def process_frame(self, frame , frame_number):
         """Perform pose estimation on a single video frame."""
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img_tensor = torch.from_numpy(img / 255.).permute(2, 0, 1).float().to(CTX)
@@ -641,10 +645,16 @@ class Pose_estimator(QMainWindow):
             center, scale = box_to_center_scale(pred_boxes[0], cfg.MODEL.IMAGE_SIZE[0], cfg.MODEL.IMAGE_SIZE[1])
             image_pose = img.copy()
             pose_preds,scores = get_pose_estimation_prediction(pose_model, image_pose, center, scale)
-            frame = draw_pose(pose_preds[0], frame)
-            self.display(frame, self.ui.label_display)
+
+            frame_pose = draw_pose(pose_preds[0], frame)
+            self.display(frame_pose, self.ui.label_display)
             self.detections.loc[len(self.detections)] = [[round(triple[0][0]), round(triple[0][1]), round(triple[1][0],2)] for triple in zip(pose_preds[0].tolist(), scores[0].tolist())]
+            if self.ui.radioButton_save.isChecked():
+                cv2.imwrite(os.path.join(self.save_directory, str(frame_number) + ".jpg"), frame)
             QApplication.processEvents()
+
+
+
 
     def save_detections(self, video_path):
         """Save the pose detection data to an Excel file in the Pose_estimations directory."""
