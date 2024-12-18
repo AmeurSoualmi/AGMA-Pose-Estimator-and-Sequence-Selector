@@ -7,7 +7,7 @@ AGMA-PESS is a python (PyQt5) based application developed to facilitate the sele
 Clone this repository and install the required packages listed in requirements.txt. Then, add the deep-learning model that can be found [here](https://drive.google.com/file/d/1xGAS2eWaF1dyXPgikYAqVs8DZwf2xiIJ/view?usp=sharing) inside "models" folder. Finally, run AGMA-PESS.py. 
 
 ### Tutorial
-A video tutorial of AGMA-PESS is available online [here]()
+A video tutorial of AGMA-PESS is available online [here](https://www.frontiersin.org/journals/pediatrics/articles/10.3389/fped.2024.1465632/full#supplementary-material)
 
 ### Installation file
 Alternatively, you can download the installation .exe file for Windows operating systems directly from [here](https://drive.google.com/file/d/1y_ReeJUFWt6_V1KUSRPFYD27L-47NB5C/view?usp=sharing). 
