@@ -1,7 +1,11 @@
 # AGMA-2S
 Deep learning based video sequence selector for infants GMA
-
 AGMA-2S is a python (PyQt5) based application developed to facilitate the selection of general movements sequences from videos . 
+
+<img width="1427" height="586" alt="image" src="https://github.com/user-attachments/assets/98d3d92c-fb4b-43a4-b200-851ea8a6528d" />
+
+
+
 
 ## How to run AGMA-2S
 Clone this repository and install the required packages listed in requirements.txt. Then, add the deep-learning models (Darpose32_retrained & fasterrcnn) that can be found [here](https://drive.google.com/drive/folders/1fsoi88-NYPsSb9SBCgcLPrs-1JIxiuL5?usp=sharing) inside "models" folder. Finally, run AGMA-2S.py. 
