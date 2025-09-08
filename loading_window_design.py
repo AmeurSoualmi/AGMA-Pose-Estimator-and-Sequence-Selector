@@ -11,98 +11,150 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_loading_window(object):
-    """Initialization window design:"""
-    def __init__(self,Screen_height, Screen_width):
-        self.screen_height = Screen_height
-        self.screen_width = Screen_width
+    def __init__(self, screen_height=None, screen_width=None):
+        # Get screen dimensions if not provided
+        if screen_height is None or screen_width is None:
+            screen = QtWidgets.QApplication.primaryScreen()
+            screen_geometry = screen.geometry()
+            self.screen_height = screen_geometry.height()
+            self.screen_width = screen_geometry.width()
+        else:
+            self.screen_height = screen_height
+            self.screen_width = screen_width
+
     def setupUi(self, MainWindow):
-        width_scale = int(self.screen_width / 1920)
-        height_scale = int(self.screen_height / 1030)
+        # Calculate base size as percentage of screen size
+        base_width = int(self.screen_width * 0.25)  # 25% of screen width
+        base_height = int(self.screen_height * 0.52)  # 52% of screen height
+
+        # Ensure minimum size
+        min_width = max(420, base_width)
+        min_height = max(500, base_height)
+
         MainWindow.setObjectName("MainWindow")
         MainWindow.setWindowIcon(QtGui.QIcon('running_files/images/vetruv_ico.ico'))
-        MainWindow.resize(width_scale *482, height_scale *536)
-        MainWindow.setMinimumSize(QtCore.QSize(width_scale *482, height_scale *556))
-        MainWindow.setMaximumSize(QtCore.QSize(width_scale *482, height_scale *556))
+        MainWindow.resize(min_width, min_height)
+        MainWindow.setMinimumSize(QtCore.QSize(420, 500))  # Set reasonable minimum
+
+        # Create central widget
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
-        self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox.setGeometry(QtCore.QRect(30 *width_scale, 20 *height_scale, 420*width_scale, 520*height_scale))
+        # Create main layout
+        main_layout = QtWidgets.QVBoxLayout(self.centralwidget)
+        main_layout.setContentsMargins(20, 10, 20, 10)
+        main_layout.setSpacing(10)
+
+        # Language selection layout (top)
+        language_layout = QtWidgets.QHBoxLayout()
+        language_layout.addStretch()  # Push buttons to the right
+
+        self.pushButton_english = QtWidgets.QPushButton()
+        self.pushButton_english.setFixedSize(30, 20)
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("running_files/images/english.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButton_english.setIcon(icon1)
+        self.pushButton_english.setIconSize(QtCore.QSize(25, 18))
+        self.pushButton_english.setObjectName("pushButton_english")
+
+        self.pushButton_french = QtWidgets.QPushButton()
+        self.pushButton_french.setFixedSize(30, 20)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("running_files/images/french.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButton_french.setIcon(icon)
+        self.pushButton_french.setIconSize(QtCore.QSize(25, 18))
+        self.pushButton_french.setObjectName("pushButton_french")
+
+        language_layout.addWidget(self.pushButton_english)
+        language_layout.addWidget(self.pushButton_french)
+
+        # Main group box
+        self.groupBox = QtWidgets.QGroupBox()
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(True)
         font.setWeight(75)
         self.groupBox.setFont(font)
-        self.groupBox.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
-        self.groupBox.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.groupBox.setAutoFillBackground(False)
         self.groupBox.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox.setObjectName("groupBox")
 
-        self.pushButton_start = QtWidgets.QPushButton(self.groupBox)
-        self.pushButton_start.setGeometry(QtCore.QRect(20*width_scale, 460*height_scale, 380*width_scale, 40*height_scale))
-        font = QtGui.QFont()
-        font.setPointSize(16)
-        font.setBold(True)
-        font.setWeight(75)
-        self.pushButton_start.setFont(font)
+        # Group box layout
+        group_layout = QtWidgets.QVBoxLayout(self.groupBox)
+        group_layout.setContentsMargins(20, 20, 20, 20)
+        group_layout.setSpacing(15)
+
+        # Logo label with proper sizing
+        self.label_vettruve = QtWidgets.QLabel()
+        self.label_vettruve.setText("")
+        self.label_vettruve.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_vettruve.setObjectName("label_vettruve")
+        self.label_vettruve.setScaledContents(True)
+        self.label_vettruve.setPixmap(QtGui.QPixmap("running_files/images/vetruv_png.png"))
+
+        # Add stretch to push content to center
+        group_layout.addStretch()
+        group_layout.addWidget(self.label_vettruve)
+
+        # Loading language label
+        self.label_loading_language = QtWidgets.QLabel()
+        font_label = QtGui.QFont("Tahoma", 12)
+        self.label_loading_language.setFont(font_label)
+        self.label_loading_language.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_loading_language.setObjectName("label_loading_language")
+        self.label_loading_language.setText("Initializing...")
+
+        group_layout.addWidget(self.label_loading_language)
+
+        # Radio buttons layout - centered container with left-aligned buttons
+        radio_container_layout = QtWidgets.QHBoxLayout()
+        radio_container_layout.addStretch()  # Push content to center
+
+        radio_layout = QtWidgets.QVBoxLayout()
+        radio_layout.setSpacing(8)
+        # Don't set alignment to center for the layout itself
+
+        self.radioButton_pose_estimator = QtWidgets.QRadioButton()
+        font_radio = QtGui.QFont("Tahoma", 12)
+        self.radioButton_pose_estimator.setFont(font_radio)
+        self.radioButton_pose_estimator.setObjectName("radioButton_pose_estimator")
+
+        self.radioButton_sequence_selector = QtWidgets.QRadioButton()
+        self.radioButton_sequence_selector.setFont(font_radio)
+        self.radioButton_sequence_selector.setObjectName("radioButton_sequence_selector")
+
+        # Add radio buttons without center alignment so they align to the left of their container
+        radio_layout.addWidget(self.radioButton_pose_estimator)
+        radio_layout.addWidget(self.radioButton_sequence_selector)
+
+        radio_container_layout.addLayout(radio_layout)
+        radio_container_layout.addStretch()  # Push content to center
+
+        group_layout.addLayout(radio_container_layout)
+
+        # Progress bar
+        self.progressBar = QtWidgets.QProgressBar()
+        self.progressBar.setMinimumHeight(25)
+        font_progress = QtGui.QFont("Tahoma", 10)
+        self.progressBar.setFont(font_progress)
+        self.progressBar.setProperty("value", 0)
+        self.progressBar.setObjectName("progressBar")
+
+        group_layout.addWidget(self.progressBar)
+
+        # Start button
+        self.pushButton_start = QtWidgets.QPushButton()
+        self.pushButton_start.setMinimumHeight(40)
+        font_button = QtGui.QFont("Tahoma", 14)
+        self.pushButton_start.setFont(font_button)
         self.pushButton_start.setObjectName("pushButton_start")
 
-        self.label_vettruve = QtWidgets.QLabel(self.groupBox)
-        self.label_vettruve.setGeometry(QtCore.QRect(60*width_scale, 40*height_scale, 300*width_scale, 300*height_scale))
-        self.label_vettruve.setText("")
-        self.label_vettruve.setPixmap(QtGui.QPixmap("running_files/images/vetruv_png.png"))
-        self.label_vettruve.setScaledContents(True)
-        self.label_vettruve.setObjectName("label_vettruve")
+        group_layout.addWidget(self.pushButton_start)
+        group_layout.addStretch()
 
-        self.label_loading_language = QtWidgets.QLabel(self.groupBox)
-        self.label_loading_language.setGeometry(QtCore.QRect(50*width_scale, 360*height_scale, 320*width_scale, 31*height_scale))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        font.setPointSize(16)
-        font.setBold(True)
-        font.setItalic(False)
-        font.setWeight(75)
-        self.label_loading_language.setFont(font)
-        self.label_loading_language.setObjectName("label_loading_language")
+        # Add layouts to main layout
+        main_layout.addLayout(language_layout)
+        main_layout.addWidget(self.groupBox, 1)  # Give groupBox most of the space
 
-        self.radioButton_pose_estimator = QtWidgets.QRadioButton(self.groupBox)
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        font.setBold(False)
-        font.setWeight(40)
-        self.radioButton_pose_estimator.setFont(font)
-        self.radioButton_pose_estimator.setObjectName("radioButton_pose_estimator")
-        self.radioButton_pose_estimator.setGeometry(QtCore.QRect(120, 400, 200, 20))
-
-        self.radioButton_sequence_selector = QtWidgets.QRadioButton(self.groupBox)
-        self.radioButton_sequence_selector.setFont(font)
-        self.radioButton_sequence_selector.setObjectName("radioButton_sequence_selector")
-        self.radioButton_sequence_selector.setGeometry(QtCore.QRect(120, 425, 200, 20))
-
-        self.pushButton_french = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_french.setGeometry(QtCore.QRect(450*width_scale, 0*height_scale, 30*width_scale, 20*height_scale))
-        self.pushButton_french.setText("")
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("running_files/images/french.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.pushButton_french.setIcon(icon)
-        self.pushButton_french.setIconSize(QtCore.QSize(40*width_scale, 30*height_scale))
-        self.pushButton_french.setObjectName("pushButton_french")
-
-        self.pushButton_english = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_english.setGeometry(QtCore.QRect(415*width_scale, 0*height_scale, 30*width_scale, 20*height_scale))
-        font = QtGui.QFont()
-        font.setStyleStrategy(QtGui.QFont.NoAntialias)
-        self.pushButton_english.setFont(font)
-        self.pushButton_english.setAutoFillBackground(False)
-        self.pushButton_english.setText("")
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("running_files/images/english.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.pushButton_english.setIcon(icon1)
-        self.pushButton_english.setIconSize(QtCore.QSize(40*width_scale, 50*height_scale))
-        self.pushButton_english.setAutoDefault(False)
-        self.pushButton_english.setDefault(False)
-        self.pushButton_english.setObjectName("pushButton_english")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -111,4 +163,5 @@ class Ui_loading_window(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "AGMA-PESS"))
+
 

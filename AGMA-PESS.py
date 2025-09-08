@@ -3,6 +3,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from torchvision.models.detection import FasterRCNN
+from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 
 import os
 import torch.nn.parallel
@@ -10,7 +12,6 @@ import torch.backends.cudnn as cudnn
 import torch.optim
 import torch.utils.data
 import torch.utils.data.distributed
-import torchvision
 import sys
 
 import lib.models.pose_hrnet as net
@@ -29,85 +30,158 @@ import pandas as pd
 from subprocess import run as RUN
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer
+
+
+class ModelLoader(QThread):
+    """Background thread for loading heavy ML models, this class was added in the second version of AGMA-PESS after feedback from users"""
+    # Signals to communicate with main thread
+    progress_updated = pyqtSignal(int, str)  # progress percentage, status message
+    models_loaded = pyqtSignal(object, object, object)  # CTX, box_model, pose_model
+    error_occurred = pyqtSignal(str)  # error message
+
+    def run(self):
+        """Execute model loading in background thread"""
+        try:
+            #Device setup
+            self.progress_updated.emit(10, "Setting up device...")
+            CTX = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+            cudnn.benchmark = cfg.CUDNN.BENCHMARK
+            torch.backends.cudnn.deterministic = cfg.CUDNN.DETERMINISTIC
+            torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
+
+            #Parse arguments and update config
+            self.progress_updated.emit(20, "Loading configuration...")
+            args = parse_args()
+            update_config(cfg, args)
+
+            #Load object detection model
+            self.progress_updated.emit(40, "Loading object detection model...")
+            backbone = resnet_fpn_backbone('resnet50', pretrained=False)
+            box_model = FasterRCNN(backbone, num_classes=91)
+            state_dict = torch.load("models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth")
+            box_model.load_state_dict(state_dict)
+            box_model.to(CTX)
+            box_model.eval()
+
+            #Load pose estimation model
+            self.progress_updated.emit(70, "Loading pose estimation model...")
+            pose_model = net.get_pose_net(cfg, is_train=False)
+            model_file = cfg.TEST.MODEL_FILE
+            if torch.cuda.is_available():
+                pose_model.load_state_dict(torch.load(model_file), strict=False)
+            else:
+                pose_model.load_state_dict(torch.load(model_file, map_location=torch.device('cpu')))
+
+            pose_model = torch.nn.DataParallel(pose_model, device_ids=cfg.GPUS)
+            pose_model.to(CTX)
+            pose_model.eval()
+
+            self.progress_updated.emit(100, "Models loaded successfully!")
+            self.models_loaded.emit(CTX, box_model, pose_model)
+
+        except Exception as e:
+            self.error_occurred.emit(f"Error loading models: {str(e)}")
+
 
 class First_window(QMainWindow):
     def __init__(self, Screen_height, Screen_width):
         super().__init__()
         self.counter = 0
+        self.closed_manually = True
         self.ui = Ui_loading_window(Screen_height, Screen_width)
+
+        # Initialize model loader thread
+        self.model_loader = ModelLoader()
         self.setup_ui()
-        self.setup_device_and_models()
-        self.show_ui_elements()
+        self.show()
         self.setup_connections()
         self.retranslateUi()
+        self.setup_model_loading()
+        # Start loading models asynchronously
+        self.start_model_loading()
 
     def setup_ui(self):
-        """ Configure and set up UI elements such as labels, buttons, and images"""
+        """Configure and set up UI elements"""
         self.ui.setupUi(self)
-        self.ui.label_vettruve.setScaledContents(True)
-        self.ui.label_vettruve.setPixmap(QtGui.QPixmap("running_files/images/vetruv_png.png"))
-        self.ui.label_loading_language.setAlignment(QtCore.Qt.AlignCenter)
-        self.ui.label_loading_language.setText("Loading...")
         self.ui.groupBox.setTitle(self.tr("AGMA Pose Estimator && Sequence Selector"))
         self.ui.pushButton_start.setText(self.tr("Start"))
         self.ui.radioButton_pose_estimator.setText(self.tr("Pose Estimator"))
         self.ui.radioButton_sequence_selector.setText(self.tr("Sequence Selector"))
+
+        # Hide program selection until models are loaded
         self.ui.radioButton_pose_estimator.hide()
         self.ui.radioButton_sequence_selector.hide()
         self.ui.pushButton_start.hide()
-        self.show()
 
-    def setup_device_and_models(self):
-        """Determine the selected program and store it; display error if none selected"""
+        # Update progress
+        self.ui.progressBar.setValue(0)
+        self.ui.progressBar.show()
+
+    def setup_model_loading(self):
+        """Connect model loader signals to UI update methods"""
+        self.model_loader.progress_updated.connect(self.update_loading_progress)
+        self.model_loader.models_loaded.connect(self.on_models_loaded)
+        self.model_loader.error_occurred.connect(self.on_loading_error)
+
+    def start_model_loading(self):
+        """Start the model loading process in background thread"""
+        self.ui.label_loading_language.setText("Loading models...")
+        self.model_loader.start()
+
+    def update_loading_progress(self, progress, message):
+        """Update UI with loading progress"""
+        self.ui.progressBar.setValue(progress)
+        self.ui.label_loading_language.setText(message)
+        # Process events to keep UI responsive
         QApplication.processEvents()
+
+    def on_models_loaded(self, device_ctx, loaded_box_model, loaded_pose_model):
+        """Called when models are successfully loaded"""
         global CTX, box_model, pose_model
-        CTX = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        cudnn.benchmark = cfg.CUDNN.BENCHMARK
-        torch.backends.cudnn.deterministic = cfg.CUDNN.DETERMINISTIC
-        torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
+        CTX = device_ctx
+        box_model = loaded_box_model
+        pose_model = loaded_pose_model
+        # Show UI elements for program selection
+        self.show_ui_elements()
 
-        args = parse_args()
-        update_config(cfg, args)
-
-        box_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
-        box_model.to(CTX)
-        box_model.eval()
-
-        pose_model = net.get_pose_net(cfg, is_train=False)
-        model_file = cfg.TEST.MODEL_FILE
-        if torch.cuda.is_available():
-            pose_model.load_state_dict(torch.load(model_file), strict=False)
-        else:
-            pose_model.load_state_dict(torch.load(model_file, map_location=torch.device('cpu')))
-
-        pose_model = torch.nn.DataParallel(pose_model, device_ids=cfg.GPUS)
-        pose_model.to(CTX)
-        pose_model.eval()
+    def on_loading_error(self, error_message):
+        """Handle model loading errors"""
+        self.ui.label_loading_language.setStyleSheet('color: red')
+        QtWidgets.QMessageBox.critical(self, "Loading Error", error_message)
 
     def show_ui_elements(self):
-        """Determine the selected program and store it; display error if none selected"""
+        """Show program selection UI after models are loaded"""
         self.ui.label_loading_language.setText(self.tr("Choose a program:"))
+        self.ui.label_loading_language.setStyleSheet('')  # Reset error styling
         self.ui.radioButton_pose_estimator.show()
         self.ui.radioButton_sequence_selector.show()
         self.ui.pushButton_start.show()
         self.ui.pushButton_english.setEnabled(False)
 
+        # Hide progress bar if it exists
+        if hasattr(self.ui, 'progressBar'):
+            self.ui.progressBar.hide()
+
     def setup_connections(self):
-        """ Establish connections between buttons and their respective functions"""
+        """Establish connections between buttons and their respective functions"""
         self.ui.pushButton_start.clicked.connect(self.start)
         self.ui.pushButton_french.clicked.connect(self.lang_fr)
         self.ui.pushButton_english.clicked.connect(self.lang_en)
 
     def retranslateUi(self):
-        """ Set text for UI elements to reflect the current language"""
+        """Set text for UI elements to reflect the current language"""
         self.ui.groupBox.setTitle(self.tr("AGMA Pose Estimator && Sequence Selector"))
         self.ui.pushButton_start.setText(self.tr("Start"))
         self.ui.radioButton_pose_estimator.setText(self.tr("Pose Estimator"))
         self.ui.radioButton_sequence_selector.setText(self.tr("Sequence Selector"))
-        self.ui.label_loading_language.setText(self.tr("Choose a program:"))
+        if (hasattr(self.ui, 'label_loading_language') and
+                hasattr(self, 'model_loader') and
+                not self.model_loader.isRunning()):
+            self.ui.label_loading_language.setText(self.tr("Choose a program:"))
 
     def lang_fr(self):
-        """ Switch the application language to French"""
+        """Switch the application language to French"""
         global language
         language = "fr"
         translator.load("running_files/translations/translati.qm")
@@ -117,7 +191,7 @@ class First_window(QMainWindow):
         self.retranslateUi()
 
     def lang_en(self):
-        """ Switch the application language to English"""
+        """Switch the application language to English"""
         global language
         language = "en"
         app.removeTranslator(translator)
@@ -126,17 +200,27 @@ class First_window(QMainWindow):
         self.retranslateUi()
 
     def start(self):
-        """ Determine the selected program and store it; display error if none selected"""
+        """Determine the selected program and store it"""
         global program
         if self.ui.radioButton_pose_estimator.isChecked():
             program = 'pose_estimator'
+            self.closed_manually = False
         elif self.ui.radioButton_sequence_selector.isChecked():
             program = 'sequence_selector'
+            self.closed_manually = False
         else:
             self.ui.label_loading_language.setStyleSheet('color: red')
             return
         self.close()
 
+    def closeEvent(self, event):
+        """Ensure background thread is properly terminated"""
+        if self.model_loader.isRunning():
+            self.model_loader.quit()
+            self.model_loader.wait()
+        super().closeEvent(event)
+
+        
 class Sequence_selector(QMainWindow):
     def __init__(self,Screen_height, Screen_width):
         super().__init__()
@@ -147,8 +231,6 @@ class Sequence_selector(QMainWindow):
         self.initialize_ui()
         self.connect_signals()
         self.initialize_flags()
-
-        self.show()
 
     def initialize_ui(self):
         """set lebels text"""
@@ -279,6 +361,7 @@ class Sequence_selector(QMainWindow):
             return
 
         starts = self.calculate_sequence_starts(self.duration, self.number_sequences, movs)
+
         self.cut_video(starts)
 
         self.ui.pushButton_Load.blockSignals(False)
@@ -340,8 +423,6 @@ class Sequence_selector(QMainWindow):
             QApplication.processEvents()
             if self.stop_flag:
                 return None
-
-        self.ui.progressBar.setValue(self.video_length)
         return movs
 
     def prepare_frame_for_model(self, frame):
@@ -402,8 +483,10 @@ class Sequence_selector(QMainWindow):
 
     def save_sequence(self, path, cntr, start):
 
+        ffmpeg_path = os.path.join(os.path.dirname(__file__),"lib", "ffmpeg", "bin", "ffmpeg.exe")
+
         command = [
-            "ffmpeg",
+            ffmpeg_path,
             "-i", self.video_path,  # Input video file
             "-ss", self.seconds_to_ffmpeg_time(start),  # Start time (in seconds)
             "-t", str(self.duration),  # Duration of the sequence
@@ -431,8 +514,6 @@ class Pose_estimator(QMainWindow):
         self.initialize_ui()
         self.connect_signals()
         self.initialize_flags()
-
-        self.show()
 
     def initialize_ui(self):
         """set lebels text"""
@@ -673,14 +754,14 @@ if __name__ == "__main__":
     app.installTranslator(translator)
     ScreenSize = QtGui.QGuiApplication.primaryScreen().availableGeometry()
     window = First_window(ScreenSize.height(),ScreenSize.width())
+    window.show()
     app.exec_()
-    if program == "sequence_selector":
-        w = Sequence_selector(ScreenSize.height(),ScreenSize.width())
+    if not window.closed_manually:
+        if program == "sequence_selector":
+            w = Sequence_selector(ScreenSize.height(),ScreenSize.width())
+        else:
+            w = Pose_estimator(ScreenSize.height(), ScreenSize.width())
         w.show()
-    else:
-        w = Pose_estimator(ScreenSize.height(), ScreenSize.width())
-        w.show()
-        pass
-    sys.exit(app.exec_())
+        sys.exit(app.exec_())
 
 
