@@ -7,7 +7,7 @@ AGMA-2S is a python (PyQt5) based application developed to facilitate the select
 Clone this repository and install the required packages listed in requirements.txt. Then, add the deep-learning models (Darpose32_retrained & fasterrcnn) that can be found [here](https://drive.google.com/drive/folders/1fsoi88-NYPsSb9SBCgcLPrs-1JIxiuL5?usp=sharing) inside "models" folder. Finally, run AGMA-2S.py. 
 
 ### Tutorial
-A video tutorial of AGMA-2S is avaliable online : https://www.youtube.com/xxxxxxxxx
+A video tutorial of AGMA-2S is avaliable online [here](https://www.frontiersin.org/journals/pediatrics/articles/10.3389/fped.2024.1465632/full#supplementary-material)
 
 ### Instalation file:
 Alternatively, you can download directly the installation file (AGMA-PESS_installer.exe) for Windows operating systems, from [here](https://drive.google.com/drive/folders/1fsoi88-NYPsSb9SBCgcLPrs-1JIxiuL5?usp=sharing). 
