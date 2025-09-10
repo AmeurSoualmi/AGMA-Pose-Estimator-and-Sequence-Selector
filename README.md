@@ -1,23 +1,23 @@
-# AGMA-2S
+# AGMA-PESS
 Deep learning based video sequence selector for infants GMA
-AGMA-2S is a python (PyQt5) based application developed to facilitate the selection of general movements sequences from videos . 
+AGMA-PESS is a python (PyQt5) based application developed to facilitate the selection of general movements sequences from videos . 
 
 <img width="1427" height="586" alt="image" src="https://github.com/user-attachments/assets/98d3d92c-fb4b-43a4-b200-851ea8a6528d" />
 
 
 
 
-## How to run AGMA-2S
-Clone this repository and install the required packages listed in requirements.txt. Then, add the deep-learning models (Darpose32_retrained & fasterrcnn) that can be found [here](https://drive.google.com/drive/folders/1fsoi88-NYPsSb9SBCgcLPrs-1JIxiuL5?usp=sharing) inside "models" folder. Finally, run AGMA-2S.py. 
+## How to run AGMA-PESS
+Clone this repository and install the required packages listed in requirements.txt. Then, add the deep-learning models (Darpose32_retrained & fasterrcnn) that can be found [here](https://drive.google.com/drive/folders/1fsoi88-NYPsSb9SBCgcLPrs-1JIxiuL5?usp=sharing) inside "models" folder. Finally, run AGMA-PESS.py. 
 
 ### Tutorial
-A video tutorial of AGMA-2S is avaliable online [here](https://www.frontiersin.org/journals/pediatrics/articles/10.3389/fped.2024.1465632/full#supplementary-material)
+A video tutorial of AGMA-PESS is avaliable online [here](https://www.frontiersin.org/journals/pediatrics/articles/10.3389/fped.2024.1465632/full#supplementary-material)
 
 ### Instalation file:
 Alternatively, you can download directly the installation file (AGMA-PESS_installer.exe) for Windows operating systems, from [here](https://drive.google.com/drive/folders/1fsoi88-NYPsSb9SBCgcLPrs-1JIxiuL5?usp=sharing). 
  
 
-Currently there is no updated version of AGMA-2S for Mac or Linux.
+Currently there is no updated version of AGMA-PESS for Mac or Linux.
 ## Citation
 If you use this code, please cite:
 
