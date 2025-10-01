@@ -45,7 +45,8 @@ class ModelLoader(QThread):
         try:
             #Device setup
             self.progress_updated.emit(10, "Setting up device...")
-            CTX = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+            CTX = self.get_device_with_arch_check()
+
             cudnn.benchmark = cfg.CUDNN.BENCHMARK
             torch.backends.cudnn.deterministic = cfg.CUDNN.DETERMINISTIC
             torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
@@ -68,12 +69,13 @@ class ModelLoader(QThread):
             self.progress_updated.emit(70, "Loading pose estimation model...")
             pose_model = net.get_pose_net(cfg, is_train=False)
             model_file = cfg.TEST.MODEL_FILE
-            if torch.cuda.is_available():
+            if CTX.type == 'cuda':
                 pose_model.load_state_dict(torch.load(model_file), strict=False)
+                pose_model = torch.nn.DataParallel(pose_model, device_ids=cfg.GPUS)
             else:
                 pose_model.load_state_dict(torch.load(model_file, map_location=torch.device('cpu')))
 
-            pose_model = torch.nn.DataParallel(pose_model, device_ids=cfg.GPUS)
+
             pose_model.to(CTX)
             pose_model.eval()
 
@@ -82,6 +84,24 @@ class ModelLoader(QThread):
 
         except Exception as e:
             self.error_occurred.emit(f"Error loading models: {str(e)}")
+
+    def get_device_with_arch_check(self):
+        if not torch.cuda.is_available():
+            return torch.device('cpu')
+        try:
+            #get the compute capability of GPU
+            major, minor = torch.cuda.get_device_capability(0)
+            gpu_arch = f"sm_{major}{minor}"
+
+            #get supported architectures
+            if hasattr(torch.cuda, 'get_arch_list'):
+                supported_archs = torch.cuda.get_arch_list()
+                if gpu_arch not in supported_archs and f"compute_{major}{minor}" not in supported_archs:
+                    return torch.device('cpu')
+            return torch.device('cuda')
+
+        except Exception as e:
+            return torch.device('cpu')
 
 
 class First_window(QMainWindow):
@@ -220,7 +240,7 @@ class First_window(QMainWindow):
             self.model_loader.wait()
         super().closeEvent(event)
 
-        
+
 class Sequence_selector(QMainWindow):
     def __init__(self,Screen_height, Screen_width):
         super().__init__()
